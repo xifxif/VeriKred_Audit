@@ -1,0 +1,14 @@
+﻿{
+  "contractName": "CredentialRegistry",
+  "purpose": "Deployment yang digunakan oleh frontend demo",
+  "network": "localhost",
+  "chainId": "31337",
+  "rpcUrl": "http://127.0.0.1:8545",
+  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "contractAddress": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+  "deploymentTransactionHash": "0x3df3ab720ef0a3cd3dabbc8f26c69faecc8db62222e93b88e7b611b6163a97ce",
+  "deploymentBlockNumber": 2,
+  "transactionStatus": 1,
+  "compiler": "solc 0.8.26",
+  "note": "Local test deployment. This record is separate from deployment-record.json. Do not use real funds or production keys."
+}

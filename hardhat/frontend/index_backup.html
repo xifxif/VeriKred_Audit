@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VeriKred — Client Demo</title>
+<style>
+body{font-family:system-ui,sans-serif;max-width:760px;margin:32px auto;padding:0 16px;color:#182230}h1{margin-bottom:4px}.muted{color:#667085}label{display:block;margin-top:12px;font-weight:600}input{box-sizing:border-box;width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px}button{margin:14px 8px 0 0;padding:10px 14px;border:0;border-radius:8px;background:#153e75;color:white;cursor:pointer}pre{white-space:pre-wrap;background:#f3f6fa;padding:12px;border-radius:8px;overflow-wrap:anywhere}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:600px){.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<h1>VeriKred</h1><p class="muted">Client demo untuk membaca status jangkar kredensial pada local blockchain. Gunakan data dummy.</p>
+<label>Contract address</label>
+<input id="address" value="0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512">
+<label>Credential ID (bytes32)</label><input id="credId" placeholder="0x…">
+<label>Merkle root (bytes32)</label><input id="root" placeholder="0x…">
+<div class="row"><div><label>New credential ID (bytes32)</label><input id="newId" placeholder="0x…"></div><div><label>New root (bytes32)</label><input id="newRoot" placeholder="0x…"></div></div>
+<label>Holder binding (bytes32)</label><input id="binding" placeholder="0x…">
+<label>Expiry timestamp (Unix; 0 = no expiry)</label><input id="expiry" value="0" inputmode="numeric">
+<button id="connect">Connect ke Hardhat Lokal</button><button id="issue">Issue (issuer role required)</button><button id="verify">Verify credential</button><button id="get">Read credential record</button>
+<button id="suspend">Suspend</button><button id="reinstate">Reinstate</button><button id="revoke">Revoke</button>
+<pre id="out">Status: belum terhubung.</pre>
+<script type="module">
+import { ethers } from "https://cdn.jsdelivr.net/npm/ethers@6.13.4/+esm";
+const abi = [
+ "function check(bytes32 id, bytes32 root) view returns (bool valid, uint8 status)",
+ "function get(bytes32 id) view returns (tuple(address issuer,bytes32 root,bytes32 holderBinding,uint64 issuedAt,uint64 expiry,uint8 status))",
+ "function issue(bytes32 id, bytes32 root, bytes32 binding, uint64 expiry)",
+ "function suspend(bytes32 id)", "function reinstate(bytes32 id)", "function revoke(bytes32 id)",
+ "event Issued(bytes32 indexed credId,address indexed issuer,bytes32 root,uint64 expiry)",
+ "event StatusChanged(bytes32 indexed credId,uint8 newStatus)"
+];
+
+let provider, signer, contract;
+
+const out = (x) =>
+  document.querySelector('#out').textContent =
+    typeof x === 'string' ? x : JSON.stringify(x, null, 2);
+
+document.querySelector('#connect').onclick = async () => {
+  try {
+    provider = new ethers.JsonRpcProvider('http://127.0.0.1:8545');
+
+    const network = await provider.getNetwork();
+    if (network.chainId !== 31337n) {
+      throw new Error('Chain ID bukan 31337.');
+    }
+
+    signer = await provider.getSigner(0);
+    const address = document.querySelector('#address').value.trim();
+
+    if (!ethers.isAddress(address)) {
+      throw new Error('Alamat kontrak tidak valid.');
+    }
+
+    contract = new ethers.Contract(address, abi, signer);
+
+    const code = await provider.getCode(address);
+    if (code === '0x') {
+      throw new Error('Kontrak tidak ditemukan. Periksa alamat dan terminal Hardhat.');
+    }
+
+    out({
+      status: 'Terhubung ke Hardhat Local',
+      account: await signer.getAddress(),
+      chainId: network.chainId.toString(),
+      contract: address
+    });
+  } catch (e) {
+    out('ERROR: ' + (e.shortMessage || e.message));
+  }
+};
+
+const validHash = (v) => /^0x[0-9a-fA-F]{64}$/.test(v);
+
+async function sendAction(fn, args, label) {
+  try {
+    if (!contract) throw new Error('Hubungkan ke Hardhat Lokal terlebih dahulu.');
+
+    const tx = await contract[fn](...args);
+    out({ action: label, submitted: tx.hash, waiting: 'Menunggu konfirmasi...' });
+
+    const receipt = await tx.wait();
+    out({
+      action: label,
+      transactionHash: receipt.hash,
+      blockNumber: receipt.blockNumber,
+      status: receipt.status,
+      note: 'Simpan transaction hash sebagai bukti demo.'
+    });
+  } catch (e) {
+    out('ERROR: ' + (e.shortMessage || e.reason || e.message));
+  }
+}
+
+document.querySelector('#issue').onclick = async () => {
+  const id = document.querySelector('#newId').value.trim();
+  const root = document.querySelector('#newRoot').value.trim();
+  const binding = document.querySelector('#binding').value.trim();
+  const exp = document.querySelector('#expiry').value.trim();
+
+  if (!validHash(id) || !validHash(root) || !validHash(binding)) {
+    return out('ERROR: ID, root, dan binding harus bytes32.');
+  }
+
+  if (!/^\d+$/.test(exp) || BigInt(exp) > 18446744073709551615n) {
+    return out('ERROR: Expiry harus berupa integer uint64.');
+  }
+
+  await sendAction('issue', [id, root, binding, BigInt(exp)], 'issue');
+};
+
+for (const [button, fn] of [
+  ['suspend', 'suspend'],
+  ['reinstate', 'reinstate'],
+  ['revoke', 'revoke']
+]) {
+  document.querySelector('#' + button).onclick = async () => {
+    const id = document.querySelector('#credId').value.trim();
+    if (!validHash(id)) return out('ERROR: Credential ID harus bytes32.');
+    await sendAction(fn, [id], fn);
+  };
+}
+
+document.querySelector('#verify').onclick = async () => {
+  try {
+    if (!contract) throw new Error('Hubungkan ke Hardhat Lokal terlebih dahulu.');
+
+    const id = document.querySelector('#credId').value.trim();
+    const root = document.querySelector('#root').value.trim();
+
+    if (!validHash(id) || !validHash(root)) {
+      throw new Error('Credential ID dan root harus bytes32.');
+    }
+
+    const [valid, status] = await contract.check(id, root);
+    const labels = ['NONE', 'ACTIVE', 'SUSPENDED', 'REVOKED', 'SUPERSEDED'];
+
+    out({
+      valid,
+      status: Number(status),
+      statusLabel: labels[Number(status)] || 'UNKNOWN'
+    });
+  } catch (e) {
+    out('ERROR: ' + (e.shortMessage || e.message));
+  }
+};
+
+document.querySelector('#get').onclick = async () => {
+  try {
+    if (!contract) throw new Error('Hubungkan ke Hardhat Lokal terlebih dahulu.');
+
+    const id = document.querySelector('#credId').value.trim();
+    if (!validHash(id)) throw new Error('Credential ID harus bytes32.');
+
+    const c = await contract.get(id);
+    out({
+      issuer: c.issuer,
+      root: c.root,
+      holderBinding: c.holderBinding,
+      issuedAt: c.issuedAt.toString(),
+      expiry: c.expiry.toString(),
+      status: Number(c.status)
+    });
+  } catch (e) {
+    out('ERROR: ' + (e.shortMessage || e.message));
+  }
+};
+</script>
+</body></html>

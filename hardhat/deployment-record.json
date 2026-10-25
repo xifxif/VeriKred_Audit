@@ -1,0 +1,13 @@
+{
+  "contractName": "CredentialRegistry",
+  "network": "localhost",
+  "chainId": "31337",
+  "rpcUrl": "http://127.0.0.1:8545",
+  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "contractAddress": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+  "deploymentTransactionHash": "0xb853b4eb2fce20176eda22dba7e01e3f7aaa615d28c79e72c282b2e76b4b2a11",
+  "deploymentBlockNumber": 9,
+  "compiler": "solc 0.8.26",
+  "timestampUTC": "2026-10-24T03:50:10.946Z",
+  "note": "Local test deployment; replace this record only with values from an actual run. Never use real funds or production keys."
+}
