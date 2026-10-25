@@ -10,7 +10,8 @@ async function main() {
   await (await registry.connect(gov).setIssuer(issuer.address, true)).wait();
 
   const hash = (s) => ethers.keccak256(ethers.toUtf8Bytes(s));
-  const id = hash("VeriKred-UAS-Demo-001");
+  // v2 [F-03]: credId = [20 byte alamat penerbit][12 byte ID lokal]
+  const id = ethers.hexlify(ethers.concat([issuer.address, ethers.dataSlice(hash("VeriKred-UAS-Demo-001"), 0, 12)]));
   const root = hash("VeriKred-Merkle-Root-Demo-001");
   const binding = hash("VeriKred-Holder-Binding-Demo-001");
 

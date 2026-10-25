@@ -6,6 +6,9 @@ describe("CredentialRegistry — Project 2 tests", function () {
   const hash = (s) => ethers.keccak256(ethers.toUtf8Bytes(s));
   const root = hash("merkle-root-demo");
   const binding = hash("holder-binding-demo");
+  // v2 [F-03]: credId = [20 byte alamat penerbit][12 byte ID lokal]
+  const cid = (signer, label) =>
+    ethers.hexlify(ethers.concat([signer.address, ethers.dataSlice(hash(label), 0, 12)]));
 
   beforeEach(async function () {
     [gov, issuer, issuer2, verifier, outsider] = await ethers.getSigners();
@@ -21,7 +24,7 @@ describe("CredentialRegistry — Project 2 tests", function () {
   });
 
   it("allows registered issuer to issue and emits Issued", async () => {
-    const id = hash("credential-1");
+    const id = cid(issuer, "credential-1");
     await expect(registry.connect(issuer).issue(id, root, binding, 0))
       .to.emit(registry, "Issued").withArgs(id, issuer.address, root, 0);
     const [valid, status] = await registry.connect(verifier).check(id, root);
@@ -35,30 +38,30 @@ describe("CredentialRegistry — Project 2 tests", function () {
   });
 
   it("rejects zero root and duplicate credential ID", async () => {
-    await expect(registry.connect(issuer).issue(hash("zero"), ethers.ZeroHash, binding, 0))
+    await expect(registry.connect(issuer).issue(cid(issuer, "zero"), ethers.ZeroHash, binding, 0))
       .to.be.revertedWith("root=0");
-    const id = hash("duplicate");
+    const id = cid(issuer, "duplicate");
     await registry.connect(issuer).issue(id, root, binding, 0);
     await expect(registry.connect(issuer).issue(id, root, binding, 0))
       .to.be.revertedWithCustomError(registry, "AlreadyExists");
   });
 
   it("returns invalid for a mismatched root", async () => {
-    const id = hash("wrong-root");
+    const id = cid(issuer, "wrong-root");
     await registry.connect(issuer).issue(id, root, binding, 0);
     const [valid] = await registry.check(id, hash("different-root"));
     expect(valid).to.equal(false);
   });
 
   it("enforces issuer ownership for revoke", async () => {
-    const id = hash("ownership");
+    const id = cid(issuer, "ownership");
     await registry.connect(issuer).issue(id, root, binding, 0);
     await expect(registry.connect(issuer2).revoke(id))
       .to.be.revertedWithCustomError(registry, "NotIssuerOf");
   });
 
   it("supports suspend and reinstate, then revoke is final", async () => {
-    const id = hash("lifecycle");
+    const id = cid(issuer, "lifecycle");
     await registry.connect(issuer).issue(id, root, binding, 0);
     await registry.connect(issuer).suspend(id);
     expect((await registry.check(id, root))[0]).to.equal(false);
@@ -70,14 +73,14 @@ describe("CredentialRegistry — Project 2 tests", function () {
   });
 
   it("rejects invalid state transition", async () => {
-    const id = hash("transition");
+    const id = cid(issuer, "transition");
     await registry.connect(issuer).issue(id, root, binding, 0);
     await expect(registry.connect(issuer).reinstate(id))
       .to.be.revertedWithCustomError(registry, "InvalidTransition");
   });
 
   it("supports superseding an old credential", async () => {
-    const oldId = hash("old-version"), newId = hash("new-version"), newRoot = hash("new-root");
+    const oldId = cid(issuer, "old-version"), newId = cid(issuer, "new-version"), newRoot = hash("new-root");
     await registry.connect(issuer).issue(oldId, root, binding, 0);
     await expect(registry.connect(issuer).supersede(oldId, newId, newRoot, binding, 0))
       .to.emit(registry, "StatusChanged").withArgs(oldId, 4);
@@ -97,14 +100,14 @@ describe("CredentialRegistry — Project 2 tests", function () {
   it("checks expiry and compromised issuer time", async function () {
     const latest = await ethers.provider.getBlock("latest");
     const expiry = BigInt(latest.timestamp + 3600);
-    const expId = hash("expires");
+    const expId = cid(issuer, "expires");
     await registry.connect(issuer).issue(expId, root, binding, expiry);
     expect((await registry.check(expId, root))[0]).to.equal(true);
     await ethers.provider.send("evm_setNextBlockTimestamp", [Number(expiry + 1n)]);
     await ethers.provider.send("evm_mine", []);
     expect((await registry.check(expId, root))[0]).to.equal(false);
 
-    const compromisedId = hash("compromised");
+    const compromisedId = cid(issuer, "compromised");
     const nowBlock = await ethers.provider.getBlock("latest");
     await registry.connect(issuer).issue(compromisedId, root, binding, 0);
     const issued = await registry.get(compromisedId);
@@ -113,7 +116,7 @@ describe("CredentialRegistry — Project 2 tests", function () {
   });
 
   it("rebinds holder binding only through credential issuer", async function () {
-    const id = hash("rebind"); const nextBinding = hash("new-holder");
+    const id = cid(issuer, "rebind"); const nextBinding = hash("new-holder");
     await registry.connect(issuer).issue(id, root, binding, 0);
     await expect(registry.connect(outsider).rebind(id, nextBinding))
       .to.be.revertedWithCustomError(registry, "NotIssuerOf");
