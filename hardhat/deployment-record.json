@@ -4,12 +4,10 @@
   "chainId": "31337",
   "rpcUrl": "http://127.0.0.1:8545",
   "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-  "governance": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   "contractAddress": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-  "deploymentTransactionHash": "0x32e5ad576c90d8d751366b5c2b18d45639c42bccc049edd5dba0b787ac0ef875",
+  "deploymentTransactionHash": "0xb70abf45e27c787d7ceee66aa7d69550c53483c0bfb178c719aa3881fb4ccaa9",
   "deploymentBlockNumber": 1,
   "compiler": "solc 0.8.26",
-  "contractVersion": "v2 (post-audit)",
-  "timestampUTC": "2026-10-26T00:37:16.933Z",
+  "timestampUTC": "2026-10-26T08:33:46.728Z",
   "note": "Local test deployment; replace this record only with values from an actual run. Never use real funds or production keys."
 }

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="738" viewBox="0 0 1200 738">
+<defs><marker id="a" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#333"/></marker></defs>
+<rect width="1200" height="738" fill="#ffffff"/>
+<text x="30" y="36" font-family="Arial" font-size="22" font-weight="bold" fill="#16324f">Alur Transaksi VeriKred (Prototipe, local EVM chain ID 31337)</text>
+<text x="30" y="60" font-family="Arial" font-size="14" fill="#526b82">Biru = transaksi tulis (gas, event) | Hijau = pembacaan on-chain | Kuning = off-chain</text>
+<rect x="30" y="80" width="160" height="36" rx="8" fill="#f5f8fc" stroke="#4776a8" stroke-width="2"/>
+<text x="110" y="103" text-anchor="middle" font-family="Arial" font-size="15" fill="#16324f">Governance</text>
+<line x1="110" y1="116" x2="110" y2="718" stroke="#9fb3c8" stroke-dasharray="5,5"/>
+<rect x="250" y="80" width="160" height="36" rx="8" fill="#f5f8fc" stroke="#4776a8" stroke-width="2"/>
+<text x="330" y="103" text-anchor="middle" font-family="Arial" font-size="15" fill="#16324f">Penerbit + Wallet</text>
+<line x1="330" y1="116" x2="330" y2="718" stroke="#9fb3c8" stroke-dasharray="5,5"/>
+<rect x="490" y="80" width="160" height="36" rx="8" fill="#f5f8fc" stroke="#4776a8" stroke-width="2"/>
+<text x="570" y="103" text-anchor="middle" font-family="Arial" font-size="15" fill="#16324f">Smart Contract</text>
+<line x1="570" y1="116" x2="570" y2="718" stroke="#9fb3c8" stroke-dasharray="5,5"/>
+<rect x="730" y="80" width="160" height="36" rx="8" fill="#f5f8fc" stroke="#4776a8" stroke-width="2"/>
+<text x="810" y="103" text-anchor="middle" font-family="Arial" font-size="15" fill="#16324f">Verifier + Client</text>
+<line x1="810" y1="116" x2="810" y2="718" stroke="#9fb3c8" stroke-dasharray="5,5"/>
+<rect x="950" y="80" width="160" height="36" rx="8" fill="#f5f8fc" stroke="#4776a8" stroke-width="2"/>
+<text x="1030" y="103" text-anchor="middle" font-family="Arial" font-size="15" fill="#16324f">Off-chain</text>
+<line x1="1030" y1="116" x2="1030" y2="718" stroke="#9fb3c8" stroke-dasharray="5,5"/>
+<line x1="110" y1="165" x2="564" y2="165" stroke="#153e75" stroke-width="2.5" marker-end="url(#a)"/>
+<text x="340.0" y="157" text-anchor="middle" font-family="Arial" font-size="13" fill="#153e75">1. setIssuer(penerbit, true)  -> event IssuerSet</text>
+<line x1="330" y1="227" x2="1024" y2="227" stroke="#b8872d" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#a)"/>
+<text x="680.0" y="219" text-anchor="middle" font-family="Arial" font-size="13" fill="#b8872d">2. susun VC, atribut bergaram, Merkle root (data pribadi tetap off-chain)</text>
+<line x1="330" y1="289" x2="564" y2="289" stroke="#153e75" stroke-width="2.5" marker-end="url(#a)"/>
+<text x="450.0" y="281" text-anchor="middle" font-family="Arial" font-size="13" fill="#153e75">3. issue(credId, root, binding, expiry)  -> event Issued</text>
+<line x1="1030" y1="351" x2="816" y2="351" stroke="#b8872d" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#a)"/>
+<text x="920.0" y="343" text-anchor="middle" font-family="Arial" font-size="13" fill="#b8872d">4. holder kirim atribut + proof Merkle + tanda tangan VC</text>
+<line x1="810" y1="413" x2="1024" y2="413" stroke="#b8872d" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#a)"/>
+<text x="920.0" y="405" text-anchor="middle" font-family="Arial" font-size="13" fill="#b8872d">5. verifikasi proof dan tanda tangan (off-chain)</text>
+<line x1="810" y1="475" x2="576" y2="475" stroke="#39845a" stroke-width="2.5" marker-end="url(#a)"/>
+<text x="690.0" y="467" text-anchor="middle" font-family="Arial" font-size="13" fill="#39845a">6. check(credId, root)  [view, tanpa gas]</text>
+<line x1="570" y1="537" x2="804" y2="537" stroke="#39845a" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#a)"/>
+<text x="690.0" y="529" text-anchor="middle" font-family="Arial" font-size="13" fill="#39845a">7. (valid, status): ACTIVE / SUSPENDED / REVOKED / SUPERSEDED</text>
+<line x1="330" y1="599" x2="564" y2="599" stroke="#153e75" stroke-width="2.5" marker-end="url(#a)"/>
+<text x="450.0" y="591" text-anchor="middle" font-family="Arial" font-size="13" fill="#153e75">8. suspend / reinstate / revoke / supersede  -> event StatusChanged</text>
+<line x1="330" y1="661" x2="564" y2="661" stroke="#153e75" stroke-width="2.5" marker-end="url(#a)"/>
+<text x="450.0" y="653" text-anchor="middle" font-family="Arial" font-size="13" fill="#153e75">9. rebind(credId, binding baru)  -> event HolderRebound (maker-checker di luar kontrak)</text>
+</svg>

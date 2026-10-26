@@ -5,13 +5,7 @@ const path = require("path");
 async function main() {
   const [deployer] = await hre.ethers.getSigners();
   const Factory = await hre.ethers.getContractFactory("CredentialRegistry");
-  // [R-01] Produksi: set GOVERNANCE_ADDRESS ke multisig/timelock. Default (deployer) hanya untuk demo lokal.
-  const governance = process.env.GOVERNANCE_ADDRESS || deployer.address;
-  if (!hre.ethers.isAddress(governance)) throw new Error("GOVERNANCE_ADDRESS tidak valid");
-  if (hre.network.name !== "localhost" && hre.network.name !== "hardhat" && governance === deployer.address) {
-    throw new Error("Jaringan non-lokal: wajib set GOVERNANCE_ADDRESS (multisig/timelock), bukan EOA deployer.");
-  }
-  const contract = await Factory.deploy(governance);
+  const contract = await Factory.deploy(deployer.address);
   const tx = contract.deploymentTransaction();
   await contract.waitForDeployment();
   const address = await contract.getAddress();
@@ -23,12 +17,10 @@ async function main() {
     chainId: network.chainId.toString(),
     rpcUrl: hre.network.name === "localhost" ? "http://127.0.0.1:8545" : "Hardhat in-process network",
     deployer: deployer.address,
-    governance,
     contractAddress: address,
     deploymentTransactionHash: tx.hash,
     deploymentBlockNumber: receipt.blockNumber,
     compiler: "solc 0.8.26",
-    contractVersion: "v2 (post-audit)",
     timestampUTC: new Date().toISOString(),
     note: "Local test deployment; replace this record only with values from an actual run. Never use real funds or production keys."
   };

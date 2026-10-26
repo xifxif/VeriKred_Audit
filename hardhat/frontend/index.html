@@ -64,7 +64,7 @@ a.nav-item{text-decoration:none}a.nav-item:hover{background:#1d3f66;color:#fff}a
         <div class="field-grid"><div class="field"><label for="newId">New credential ID <span>bytes32</span></label><input id="newId" placeholder="0x…"></div><div class="field"><label for="newRoot">New Merkle root <span>bytes32</span></label><input id="newRoot" placeholder="0x…"></div></div>
         <div class="field"><label for="binding">Holder binding <span>bytes32</span></label><input id="binding" value="0x6666666666666666666666666666666666666666666666666666666666666666"></div>
         <div class="field"><label for="expiry">Expiry timestamp <span>Unix · 0 = tanpa kedaluwarsa</span></label><input id="expiry" value="0" inputmode="numeric"></div>
-        <div class="actions"><button class="btn btn-outline" id="genId" type="button">⚄ Buat ID (prefix akun aktif)</button><button class="btn btn-primary" id="issue" type="button">＋ Issue credential</button></div>
+        <div class="actions"><button class="btn btn-primary" id="issue" type="button">＋ Issue credential</button></div>
       </div></section>
       <section class="card" data-view="records"><div class="card-head"><div style="display:flex;gap:12px;align-items:center"><div class="step">03</div><div><h2>Kelola status</h2><p>Perubahan status mengikuti aturan smart contract.</p></div></div></div><div class="card-body"><div class="status-actions"><button class="btn btn-outline" id="suspend" type="button">Ⅱ Suspend</button><button class="btn btn-outline" id="reinstate" type="button">↻ Reinstate</button><button class="btn btn-danger" id="revoke" type="button">× Revoke</button></div><p class="hint">Aksi status memakai Credential ID pada kolom “Baca record” di atas. Revoke merupakan status akhir untuk kredensial.</p></div></section>
     </div><div>
@@ -127,8 +127,6 @@ const abi = [
  "function get(bytes32 id) view returns (tuple(address issuer,bytes32 root,bytes32 holderBinding,uint64 issuedAt,uint64 expiry,uint8 status))",
  "function issue(bytes32 id, bytes32 root, bytes32 binding, uint64 expiry)",
  "function suspend(bytes32 id)", "function reinstate(bytes32 id)", "function revoke(bytes32 id)",
- "error NotGovernance()", "error NotIssuerOf()", "error AlreadyExists()", "error InvalidTransition()",
- "error IssuerIsCompromised()", "error InvalidCredentialId()", "error InvalidExpiry()", "error InvalidBinding()",
  "event Issued(bytes32 indexed credId,address indexed issuer,bytes32 root,uint64 expiry)",
  "event StatusChanged(bytes32 indexed credId,uint8 newStatus)"
 ];
@@ -191,27 +189,11 @@ async function sendAction(fn, args, label) {
   }
 }
 
-// v2 [F-03]: credId wajib berformat [20 byte alamat penerbit][12 byte acak/ID lokal].
-$('#genId').onclick = async () => {
-  try {
-    await ensureConnected();
-    $('#newId').value = ethers.hexlify(ethers.concat([await signer.getAddress(), ethers.randomBytes(12)]));
-    out('ID baru dibuat dengan prefix alamat akun aktif. Salin ke menu Verify/Read bila perlu.');
-  } catch (e) { out('ERROR: ' + (e.shortMessage || e.message)); }
-};
-
 $('#issue').onclick = async () => {
   const id = $('#newId').value.trim(), root = $('#newRoot').value.trim();
   const binding = $('#binding').value.trim(), exp = $('#expiry').value.trim();
   if (!validHash(id) || !validHash(root) || !validHash(binding)) return out('ERROR: ID, root, dan binding harus bytes32.');
   if (!/^\d+$/.test(exp) || BigInt(exp) > 18446744073709551615n) return out('ERROR: Expiry harus berupa integer uint64.');
-  if (BigInt(exp) !== 0n && BigInt(exp) <= BigInt(Math.floor(Date.now() / 1000))) return out('ERROR: Expiry harus 0 atau waktu di masa depan.');
-  if (/^0x0{64}$/i.test(binding)) return out('ERROR: Holder binding tidak boleh nol.');
-  try {
-    await ensureConnected();
-    if (id.slice(0, 42).toLowerCase() !== (await signer.getAddress()).toLowerCase())
-      return out('ERROR: 20 byte pertama Credential ID harus alamat akun penerbit aktif. Gunakan tombol "Buat ID".');
-  } catch (e) { return out('ERROR: ' + (e.shortMessage || e.message)); }
   await sendAction('issue', [id, root, binding, BigInt(exp)], 'issue');
 };
 
