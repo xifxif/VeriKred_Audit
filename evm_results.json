@@ -1,0 +1,106 @@
+{
+  "evm": "ethereumjs/evm (in-memory, hardfork Shanghai)",
+  "solc": "0.8.26",
+  "cases": [
+    {
+      "id": "E1",
+      "deskripsi": "Deploy kontrak; governance = alamat konstruktor",
+      "hasil": "PASS",
+      "detail": "deploy gas=1563959"
+    },
+    {
+      "id": "E2",
+      "deskripsi": "setIssuer oleh non-governance ditolak (NotGovernance)",
+      "hasil": "PASS",
+      "detail": "revert=0xb56f932c"
+    },
+    {
+      "id": "E3",
+      "deskripsi": "issue oleh non-penerbit ditolak",
+      "hasil": "PASS",
+      "detail": "reverted=true"
+    },
+    {
+      "id": "E4",
+      "deskripsi": "issue oleh penerbit terdaftar; check(root benar) valid=true, status=ACTIVE",
+      "hasil": "PASS",
+      "detail": "valid=true; status=1; gas issue=93472"
+    },
+    {
+      "id": "E5",
+      "deskripsi": "check dengan root salah → valid=false",
+      "hasil": "PASS",
+      "detail": "valid=false"
+    },
+    {
+      "id": "E6",
+      "deskripsi": "timpa credId yang sama ditolak (AlreadyExists)",
+      "hasil": "PASS",
+      "detail": "revert=0x23369fa6"
+    },
+    {
+      "id": "E7",
+      "deskripsi": "revoke oleh penerbit lain ditolak (NotIssuerOf)",
+      "hasil": "PASS",
+      "detail": "revert=0xc677a12e"
+    },
+    {
+      "id": "E8",
+      "deskripsi": "suspend → valid=false; reinstate → valid=true",
+      "hasil": "PASS",
+      "detail": "saat suspend ok=true; setelah reinstate valid=true"
+    },
+    {
+      "id": "E9",
+      "deskripsi": "revoke bersifat final: reinstate setelah revoke ditolak (InvalidTransition)",
+      "hasil": "PASS",
+      "detail": "status=3; reinstate revert=0xa6532e5d"
+    },
+    {
+      "id": "E10",
+      "deskripsi": "supersede: versi lama SUPERSEDED (tidak valid), versi baru valid",
+      "hasil": "PASS",
+      "detail": "lama status=4; baru valid=true"
+    },
+    {
+      "id": "E11",
+      "deskripsi": "kedaluwarsa: valid sebelum expiry, tidak valid sesudah expiry",
+      "hasil": "PASS",
+      "detail": "sebelum=true; sesudah=false"
+    },
+    {
+      "id": "E12",
+      "deskripsi": "kunci penerbit bocor: kredensial sebelum waktu bocor tetap valid, sesudahnya tidak",
+      "hasil": "PASS",
+      "detail": "sebelum=true; sesudah=false"
+    },
+    {
+      "id": "E13",
+      "deskripsi": "rebind: non-penerbit ditolak; penerbit berhasil mengganti holderBinding",
+      "hasil": "PASS",
+      "detail": "binding baru tersimpan=true"
+    },
+    {
+      "id": "E14",
+      "deskripsi": "alih governance dua langkah: pihak tak berwenang ditolak; pending dapat accept",
+      "hasil": "PASS",
+      "detail": "governance baru berlaku=true"
+    },
+    {
+      "id": "E15",
+      "deskripsi": "issue dengan root = 0 ditolak",
+      "hasil": "PASS",
+      "detail": "reverted=true"
+    }
+  ],
+  "pass": 15,
+  "total": 15,
+  "gas": {
+    "deploy": 1563959,
+    "setIssuer": 24669,
+    "issue": 93472,
+    "suspend": 5944,
+    "revoke": 6004,
+    "supersede": 98935
+  }
+}
