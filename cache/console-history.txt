@@ -1,0 +1,8 @@
+.exit
+(await ethers.provider.getCode("0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9")).length
+.exit
+}  }    }      });        status: r.status        deploymentTransactionHash: h,        contractAddress: r.contractAddress,        blockNumber: r.blockNumber,      console.log({    if (r?.contractAddress?.toLowerCase() === "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512") {    const r = await ethers.provider.getTransactionReceipt(h);  for (const h of b.transactions) {  const b = await ethers.provider.getBlock(i);for (let i = 0; i <= await ethers.provider.getBlockNumber(); i++) {
+.exit
+await ethers.provider.getCode(await c.getAddress())
+await c.getAddress()
+const c = await ethers.getContractAt("CredentialRegistry", "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512")
